@@ -15,6 +15,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -28,24 +34,47 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                // 1. ATIVAR O CORS AQUI (Isso faltava no seu código)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Acessos Públicos (Login e Registro)
+                        // Acessos Públicos
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios/registro-publico").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/documentos").permitAll()
 
-                        // 2. Acesso Público ao Repositório (LEITURA APENAS)
-                        .requestMatchers(HttpMethod.GET, "/documentos").permitAll() // <--- O PULO DO GATO AQUI
-
-                        // 3. Documentação Swagger
+                        // Swagger e Docs
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
 
-                        // 4. Todo o resto exige login (Upload, Aprovação, Admin, etc)
+                        // O resto exige autenticação
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // 2. DEFINIR AS REGRAS DE CORS (Liberar o Frontend)
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Libera as origens do Frontend (Vite geralmente é 5173, mas deixei 3000 também por garantia)
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+
+        // Libera os métodos HTTP necessários
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // Libera todos os cabeçalhos (inclusive Authorization)
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // Permite credenciais
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
