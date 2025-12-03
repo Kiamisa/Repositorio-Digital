@@ -28,11 +28,9 @@ public class DocumentoController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentoResponseDTO> enviarDocumento(
             @ModelAttribute @Valid DocumentoRequestDTO dados,
-            @RequestParam("arquivo") MultipartFile arquivo,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
-        // Agora chamamos o serviço com os 3 parâmetros corretos
-        var documento = documentoService.upload(dados, arquivo, usuarioLogado);
+        var documento = documentoService.upload(dados, dados.getArquivo(), usuarioLogado);
         return ResponseEntity.status(201).body(documento);
     }
 
