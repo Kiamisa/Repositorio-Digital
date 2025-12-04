@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile; // Importante!
 
 import java.util.List;
 
@@ -30,13 +29,12 @@ public class DocumentoController {
             @ModelAttribute @Valid DocumentoRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
-        var documento = documentoService.upload(dados, dados.getArquivo(), usuarioLogado);
+        var documento = documentoService.upload(dados, usuarioLogado);
         return ResponseEntity.status(201).body(documento);
     }
 
     @GetMapping
     public ResponseEntity<List<DocumentoResponseDTO>> listarDocumentosPublicos() {
-        // Busca apenas documentos que já foram aprovados no fluxo
         var docs = documentoRepository.findAllAprovados();
         var dtos = docs.stream().map(DocumentoResponseDTO::new).toList();
         return ResponseEntity.ok(dtos);

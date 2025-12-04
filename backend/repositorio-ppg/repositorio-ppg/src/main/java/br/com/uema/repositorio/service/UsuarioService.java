@@ -7,6 +7,7 @@ import br.com.uema.repositorio.exception.RecursoNaoEncontradoException;
 import br.com.uema.repositorio.exception.RegraNegocioException;
 import br.com.uema.repositorio.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,16 +36,15 @@ public class UsuarioService {
                 .email(dados.email())
                 .senha(passwordEncoder.encode(dados.senha()))
                 .perfil(dados.perfil())
-                .ativo(ativo) // <--- Define aqui
+                .ativo(ativo)
                 .build();
 
         usuarioRepository.save(novoUsuario);
         return new UsuarioResponseDTO(novoUsuario);
     }
 
-    // Adicione método para ATIVAR usuário (Aprovação)
     @Transactional
-    public void ativarUsuario(Long id) {
+    public void ativarUsuario(@NonNull Long id) {
         var usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
         usuario.setAtivo(true);

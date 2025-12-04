@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useContext } from 'react';
 
 interface User {
   email: string;
@@ -28,12 +28,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = (newToken: string, email: string) => {
     localStorage.setItem('token', newToken);
     setToken(newToken);
-    
+
     // Simulação de perfil (igual fizemos no Vue, pois o backend v1 só retorna token)
     // Num backend v2, decodificaríamos o token JWT real.
     const perfil = (email.includes('admin') || email.includes('maria')) ? 'ADMIN' : 'FUNCIONARIO';
     const newUser = { email, perfil };
-    
+
     localStorage.setItem('user', JSON.stringify(newUser));
     setUser(newUser);
   };
@@ -54,3 +54,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+
+export const useAuth = () => useContext(AuthContext);

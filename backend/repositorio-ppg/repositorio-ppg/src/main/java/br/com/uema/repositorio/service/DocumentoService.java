@@ -13,21 +13,27 @@ import br.com.uema.repositorio.repository.FluxoAprovacaoRepository;
 import br.com.uema.repositorio.repository.ProgramaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
 public class DocumentoService {
 
-    @Value("${file.upload-dir}")
+    @Value("${file.upload-dir:./uploads}")
     private String uploadDir;
 
     @Autowired
@@ -42,13 +48,15 @@ public class DocumentoService {
     }
 
     @Transactional
-    public DocumentoResponseDTO upload(DocumentoRequestDTO dados, MultipartFile arquivo, Usuario autor) {        // 1. Validar Programa (Use getProgramaId() em vez de programaId())
+    public DocumentoResponseDTO upload(DocumentoRequestDTO dados, Usuario autor) {
+        // 1. Validar Programa
         var programa = programaRepository.findById(dados.getProgramaId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Programa não encontrado"));
 
-        String caminhoArquivo = salvarArquivoNoDisco(arquivo);
+        // 2. Salvar no Disco
+        String caminhoArquivo = salvarArquivoNoDisco(dados.getArquivo());
 
-        // 3. Salvar Metadados no Banco (Use os Getters)
+        // 3. Salvar no Banco
         var novoDocumento = Documento.builder()
                 .titulo(dados.getTitulo())
                 .descricao(dados.getDescricao())
@@ -61,8 +69,8 @@ public class DocumentoService {
 
         documentoRepository.save(novoDocumento);
 
+        // 4. Fluxo de Aprovação
         EstadoAprovacao estadoInicial;
-
         if (autor.getPerfil() == PerfilUsuario.ADMIN || autor.getPerfil() == PerfilUsuario.GESTOR) {
             estadoInicial = EstadoAprovacao.APROVADO;
         } else {
@@ -72,8 +80,8 @@ public class DocumentoService {
         var fluxo = FluxoAprovacao.builder()
                 .documento(novoDocumento)
                 .estado(estadoInicial)
-                .aprovador(estadoInicial == EstadoAprovacao.APROVADO ? autor : null) // Se auto-aprovou
-                .comentarios(estadoInicial == EstadoAprovacao.APROVADO ? "Aprovação automática por nível hierárquico" : "Aguardando análise")
+                .aprovador(estadoInicial == EstadoAprovacao.APROVADO ? autor : null)
+                .comentarios(estadoInicial == EstadoAprovacao.APROVADO ? "Aprovação automática" : "Aguardando análise")
                 .build();
 
         fluxoAprovacaoRepository.save(fluxo);
@@ -81,22 +89,40 @@ public class DocumentoService {
         return new DocumentoResponseDTO(novoDocumento);
     }
 
+    public Resource download(Long id) {
+        try {
+            var documento = documentoRepository.findById(id)
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Documento não encontrado"));
+
+            Path caminhoArquivo = Paths.get(uploadDir).resolve(documento.getCaminhoArquivo()).normalize();
+            Resource recurso = new UrlResource(caminhoArquivo.toUri());
+
+            if (recurso.exists()) {
+                return recurso;
+            } else {
+                throw new FileNotFoundException("Arquivo não encontrado no servidor: " + documento.getCaminhoArquivo());
+            }
+        } catch (MalformedURLException | FileNotFoundException ex) {
+            throw new RuntimeException("Erro ao baixar arquivo: " + ex.getMessage());
+        }
+    }
+
     private String salvarArquivoNoDisco(MultipartFile arquivo) {
         try {
-            // Cria o diretório se não existir
             Path diretorioPath = Paths.get(uploadDir).toAbsolutePath().normalize();
             Files.createDirectories(diretorioPath);
 
-            // Gera nome único para evitar sobrescrita (UUID + nome original)
-            String nomeArquivo = UUID.randomUUID() + "_" + arquivo.getOriginalFilename();
+            String nomeOriginal = Objects.requireNonNull(arquivo.getOriginalFilename())
+                    .replaceAll("[^a-zA-Z0-9\\.\\-_]", "_");
+
+            String nomeArquivo = UUID.randomUUID() + "_" + nomeOriginal;
             Path targetLocation = diretorioPath.resolve(nomeArquivo);
 
-            // Copia o arquivo
             Files.copy(arquivo.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            return targetLocation.toString();
+            return nomeArquivo;
         } catch (IOException ex) {
-            throw new RuntimeException("Não foi possível salvar o arquivo " + arquivo.getOriginalFilename(), ex);
+            throw new RuntimeException("Erro ao salvar arquivo", ex);
         }
     }
 }
