@@ -19,15 +19,15 @@ interface Pendencia {
 export function ApprovalScreen() {
   const [pendencias, setPendencias] = useState<Pendencia[]>([]);
   
-  useEffect(() => {
-    fetchPendencias();
-  }, []);
+    const fetchPendencias = () => {
+        api.get('/aprovacoes/pendentes')
+             .then(res => setPendencias(res.data))
+             .catch(console.error);
+    };
 
-  const fetchPendencias = () => {
-    api.get('/aprovacoes/pendentes')
-       .then(res => setPendencias(res.data))
-       .catch(console.error);
-  };
+    useEffect(() => {
+        fetchPendencias();
+    }, []);
 
   const handleProcess = async (id: number, approved: boolean) => {
     if (!confirm(approved ? "Aprovar documento?" : "Rejeitar documento?")) return;
@@ -36,7 +36,7 @@ export function ApprovalScreen() {
         await api.patch(`/aprovacoes/${id}?aprovado=${approved}&comentario=ViaReact`);
         // Remove da lista local
         setPendencias(prev => prev.filter(p => p.idFluxo !== id));
-    } catch (error) {
+    } catch {
         alert("Erro ao processar.");
     }
   };

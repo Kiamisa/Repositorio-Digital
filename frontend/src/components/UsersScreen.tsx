@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Search, User as UserIcon, Shield } from 'lucide-react';
+import { UserPlus, User as UserIcon } from 'lucide-react';
 import api from '../services/api';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -27,13 +27,13 @@ export function UsersScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState('FUNCIONARIO');
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+    const fetchUsers = () => {
+        api.get('/usuarios').then(res => setUsers(res.data)).catch(console.error);
+    };
 
-  const fetchUsers = () => {
-    api.get('/usuarios').then(res => setUsers(res.data)).catch(console.error);
-  };
+    useEffect(() => {
+        fetchUsers();
+    }, []);
 
   const handleAddUser = async () => {
     try {
@@ -47,9 +47,9 @@ export function UsersScreen() {
         fetchUsers(); // Recarrega lista
         // Reset form
         setNewName(''); setNewEmail(''); setNewPassword('');
-    } catch (error) {
-        alert("Erro ao criar usuário.");
-    }
+      } catch {
+          alert("Erro ao criar usuário.");
+      }
   };
 
   return (

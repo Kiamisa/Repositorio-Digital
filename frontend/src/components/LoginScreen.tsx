@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, FileText } from "lucide-react";
-import { useAuth } from "../context/AuthContext"; // Importa nosso hook
+import { useAuth } from "../context/useAuth"; // Importa nosso hook
 import { useNavigate } from "react-router-dom";   // Navegação do React
 import api from "../services/api"; // Nossa API
 import { Button } from "./ui/button";

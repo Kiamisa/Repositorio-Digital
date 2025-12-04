@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Filter, FileText, Download, Eye, Calendar } from 'lucide-react';
+import { Search, Filter, FileText, Download, Calendar } from 'lucide-react';
 import api from '../services/api';
 import { Button } from './ui/button';
 import { Input } from './ui/input';

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { FileText } from "lucide-react";
 import api from "../services/api"; // Importar API
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 
@@ -17,7 +17,7 @@ interface Documento {
 }
 
 export function DashboardScreen() {
-  const { user, isAdminOrGestor } = useAuth();
+  const { user } = useAuth();
   const [documents, setDocuments] = useState<Documento[]>([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
 
@@ -40,7 +40,7 @@ export function DashboardScreen() {
   }, []);
 
   return (
-    <div className="p-8">
+    <div className="p-8 ml-64">
       <div className="mb-8">
         <h1 className="text-gray-900 mb-2 text-2xl font-bold">Olá, {user?.email}!</h1>
         <p className="text-gray-600">Bem-vindo ao painel de controle</p>
