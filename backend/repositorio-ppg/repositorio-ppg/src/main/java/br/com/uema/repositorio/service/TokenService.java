@@ -23,8 +23,8 @@ public class TokenService {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             return JWT.create()
                     .withIssuer("API Repositorio PPG")
-                    .withSubject(usuario.getEmail()) // O "dono" do token
-                    .withClaim("id", usuario.getId()) // Guarda o ID no payload
+                    .withSubject(usuario.getEmail())
+                    .withClaim("id", usuario.getId())
                     .withExpiresAt(dataExpiracao())
                     .sign(algorithm);
         } catch (JWTCreationException exception) {

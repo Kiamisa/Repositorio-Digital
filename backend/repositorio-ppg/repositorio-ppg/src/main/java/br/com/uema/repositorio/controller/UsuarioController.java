@@ -28,7 +28,7 @@ public class UsuarioController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'GESTOR')") // <--- BLOQUEIO DE HIERARQUIA
+    @PreAuthorize("hasAnyRole('ADMIN', 'GESTOR')")
     public ResponseEntity<UsuarioResponseDTO> criarPeloAdmin(@RequestBody @Valid UsuarioRequestDTO dados) {
         // Passamos true: já nasce aprovado
         var usuario = usuarioService.criarUsuario(dados, true);
@@ -44,7 +44,7 @@ public class UsuarioController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'GESTOR')") // Funcionários não veem a lista de todos os usuários
+    @PreAuthorize("hasAnyRole('ADMIN', 'GESTOR')")
     public ResponseEntity<List<UsuarioResponseDTO>> listar() {
         return ResponseEntity.ok(usuarioService.listarTodos());
     }

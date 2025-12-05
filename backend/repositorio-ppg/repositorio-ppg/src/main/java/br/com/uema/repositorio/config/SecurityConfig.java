@@ -22,7 +22,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -44,11 +43,12 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(authorize -> authorize
                         // 1. INFRAESTRUTURA (Essencial para não dar erro de CORS/401 no frontend)
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // <--- LIBERA O PREFLIGHT
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // 2. ACESSOS PÚBLICOS
                         .requestMatchers("/login", "/auth/login").permitAll()
                         .requestMatchers("/usuarios/registro-publico").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/documentos/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
 
                         // 3. REGRAS DE NEGÓCIO (Baseadas no Legado)
@@ -105,7 +105,6 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Libera o frontend (React/Vite)
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));

@@ -10,7 +10,6 @@ public record UsuarioResponseDTO(
         PerfilUsuario perfil,
         Boolean ativo
 ) {
-    // Construtor auxiliar para converter Entidade -> DTO facilmente
     public UsuarioResponseDTO(Usuario usuario) {
         this(usuario.getId(), usuario.getNome(), usuario.getEmail(), usuario.getPerfil(), usuario.getAtivo());
     }

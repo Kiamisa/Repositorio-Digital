@@ -39,7 +39,7 @@ public class Documento {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
-    private Usuario usuario; // Quem submeteu
+    private Usuario usuario;
 
     @Column(name = "resumo_ia", columnDefinition = "TEXT")
     private String resumoIa;

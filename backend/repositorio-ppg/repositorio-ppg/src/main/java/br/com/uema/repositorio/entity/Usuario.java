@@ -46,7 +46,6 @@ public class Usuario implements UserDetails {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    // Métodos do UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + perfil.name()));
@@ -55,7 +54,7 @@ public class Usuario implements UserDetails {
     @Override
     public String getPassword() { return senha; }
     @Override
-    public String getUsername() { return email; } // Email é o login
+    public String getUsername() { return email; }
     @Override
     public boolean isAccountNonExpired() { return true; }
     @Override

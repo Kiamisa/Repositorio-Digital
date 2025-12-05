@@ -8,6 +8,7 @@ import br.com.uema.repositorio.entity.Usuario;
 import br.com.uema.repositorio.enums.EstadoAprovacao;
 import br.com.uema.repositorio.enums.PerfilUsuario;
 import br.com.uema.repositorio.exception.RecursoNaoEncontradoException;
+import br.com.uema.repositorio.exception.RegraNegocioException;
 import br.com.uema.repositorio.repository.DocumentoRepository;
 import br.com.uema.repositorio.repository.FluxoAprovacaoRepository;
 import br.com.uema.repositorio.repository.ProgramaRepository;
@@ -26,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -49,14 +49,15 @@ public class DocumentoService {
 
     @Transactional
     public DocumentoResponseDTO upload(DocumentoRequestDTO dados, Usuario autor) {
-        // 1. Validar Programa
+
+        if (dados.getArquivo() == null || dados.getArquivo().isEmpty()) {
+            throw new RegraNegocioException("O arquivo é obrigatório para novos documentos.");
+        }
         var programa = programaRepository.findById(dados.getProgramaId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Programa não encontrado"));
 
-        // 2. Salvar no Disco
         String caminhoArquivo = salvarArquivoNoDisco(dados.getArquivo());
 
-        // 3. Salvar no Banco
         var novoDocumento = Documento.builder()
                 .titulo(dados.getTitulo())
                 .descricao(dados.getDescricao())
@@ -69,7 +70,6 @@ public class DocumentoService {
 
         documentoRepository.save(novoDocumento);
 
-        // 4. Fluxo de Aprovação
         EstadoAprovacao estadoInicial;
         if (autor.getPerfil() == PerfilUsuario.ADMIN || autor.getPerfil() == PerfilUsuario.GESTOR) {
             estadoInicial = EstadoAprovacao.APROVADO;
@@ -124,5 +124,46 @@ public class DocumentoService {
         } catch (IOException ex) {
             throw new RuntimeException("Erro ao salvar arquivo", ex);
         }
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        var documento = documentoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Documento não encontrado"));
+
+        documentoRepository.delete(documento);
+
+        try {
+            Path arquivoPath = Paths.get(uploadDir).resolve(documento.getCaminhoArquivo()).normalize();
+            Files.deleteIfExists(arquivoPath);
+        } catch (IOException e) {
+            System.err.println("Erro ao excluir arquivo físico: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public DocumentoResponseDTO atualizar(Long id, DocumentoRequestDTO dados, Usuario editor) {
+        Documento documento = documentoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Documento não encontrado"));
+
+        documento.setTitulo(dados.getTitulo());
+        documento.setDescricao(dados.getDescricao());
+        documento.setTipo(dados.getTipo());
+        documento.setDataPublicacao(dados.getDataPublicacao());
+
+        if (!documento.getPrograma().getId().equals(dados.getProgramaId())) {
+            var novoPrograma = programaRepository.findById(dados.getProgramaId())
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Programa não encontrado"));
+            documento.setPrograma(novoPrograma);
+        }
+
+        // Atualiza Arquivo (Apenas se enviado)
+        if (dados.getArquivo() != null && !dados.getArquivo().isEmpty()) {
+            String novoCaminho = salvarArquivoNoDisco(dados.getArquivo());
+            documento.setCaminhoArquivo(novoCaminho);
+        }
+
+        documentoRepository.save(documento);
+        return new DocumentoResponseDTO(documento);
     }
 }

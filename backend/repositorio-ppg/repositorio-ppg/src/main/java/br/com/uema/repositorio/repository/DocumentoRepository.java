@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface DocumentoRepository extends JpaRepository<Documento, Long> {
 
-    // Query JPQL para buscar apenas documentos que tenham um fluxo com estado APROVADO
     @Query("SELECT d FROM Documento d JOIN FluxoAprovacao f ON f.documento = d WHERE f.estado = 'APROVADO'")
     List<Documento> findAllAprovados();
 }

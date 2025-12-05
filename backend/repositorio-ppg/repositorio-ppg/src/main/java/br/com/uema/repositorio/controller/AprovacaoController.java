@@ -20,14 +20,13 @@ public class AprovacaoController {
 
     private final FluxoAprovacaoRepository fluxoRepository;
 
-    // Apenas Gestores e Admins podem ver a fila de aprovação
     @GetMapping("/pendentes")
     @PreAuthorize("hasAnyRole('ADMIN', 'GESTOR')")
-    public ResponseEntity<List<FluxoAprovacaoResponseDTO>> listarPendentes() { // Mudou o tipo de retorno
+    public ResponseEntity<List<FluxoAprovacaoResponseDTO>> listarPendentes() {
 
         var pendentes = fluxoRepository.findAll().stream()
                 .filter(f -> f.getEstado() == EstadoAprovacao.PENDENTE)
-                .map(FluxoAprovacaoResponseDTO::new) // Converte Entidade -> DTO
+                .map(FluxoAprovacaoResponseDTO::new)
                 .toList();
 
         return ResponseEntity.ok(pendentes);

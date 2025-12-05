@@ -29,6 +29,6 @@ public class DocumentoRequestDTO {
     @NotNull(message = "O ID do programa é obrigatório")
     private Long programaId;
 
-    @NotNull(message = "O arquivo é obrigatório")
+    //@NotNull(message = "O arquivo é obrigatório")
     private MultipartFile arquivo;
 }
