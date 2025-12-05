@@ -77,7 +77,7 @@ export function SearchScreen() {
                 <Label>Categoria</Label>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     <SelectItem value="all">Todas</SelectItem>
                     {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                   </SelectContent>
@@ -93,7 +93,7 @@ export function SearchScreen() {
           <Card key={doc.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-[#2B3C50]/10 text-[#2B3C50] rounded-lg flex items-center justify-center flex-shrink-0">
                   <FileText className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="flex-1 min-w-0">

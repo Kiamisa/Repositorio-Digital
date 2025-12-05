@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, FileText, X, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 import { Button } from './ui/button';
@@ -9,6 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { useNavigate } from 'react-router-dom';
 
+interface Programa {
+  id: number;
+  nome: string;
+  sigla: string;
+}
+
 export function UploadScreen() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -17,13 +23,27 @@ export function UploadScreen() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
+  
+  // 1. NOVO ESTADO: Inicializa com a data de hoje (formato YYYY-MM-DD)
+  const [publicationDate, setPublicationDate] = useState(new Date().toISOString().split('T')[0]);
+  
   const [file, setFile] = useState<File | null>(null);
+  const [programId, setProgramId] = useState('');
+  const [programas, setProgramas] = useState<Programa[]>([]);
+
   const [isDragging, setIsDragging] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Enum do backend
   const categories = ['EDITAIS', 'RESULTADOS', 'FORMULARIOS', 'OUTROS', 'DOCUMENTACOES', 'RESOLUCOES'];
+
+  useEffect(() => {
+    api.get('/programas')
+      .then(response => {
+        setProgramas(response.data);
+      })
+      .catch(err => console.error("Erro ao carregar programas", err));
+  }, []);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -49,7 +69,8 @@ export function UploadScreen() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title || !category || !file) {
+    // Validação inclui publicationDate
+    if (!title || !category || !file || !programId || !publicationDate) {
       alert('Por favor, preencha todos os campos obrigatórios e selecione um arquivo.');
       return;
     }
@@ -59,12 +80,14 @@ export function UploadScreen() {
     try {
         const formData = new FormData();
         formData.append('titulo', title);
-        // Concatenando tags na descrição pois o backend v1 não tem campo tags separado
         const descFinal = tags ? `${description}\n\nTags: ${tags}` : description;
         formData.append('descricao', descFinal);
         formData.append('tipo', category);
-        formData.append('dataPublicacao', new Date().toISOString().split('T')[0]);
-        formData.append('programaId', '1'); // ID fixo por enquanto
+        
+        // 2. ALTERAÇÃO: Usa o estado publicationDate em vez de new Date() automático
+        formData.append('dataPublicacao', publicationDate);
+        
+        formData.append('programaId', programId);
         formData.append('arquivo', file);
 
         await api.post('/documentos', formData, {
@@ -83,7 +106,7 @@ export function UploadScreen() {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto ml-64"> {/* ml-64 compensa a sidebar fixa */}
+    <div className="p-8 max-w-4xl mx-auto ml-64">
       <div className="mb-8">
         <h1 className="text-gray-900 mb-2 text-2xl font-bold">Enviar Documento</h1>
         <p className="text-gray-600">Faça upload de um novo documento para o repositório</p>
@@ -130,7 +153,7 @@ export function UploadScreen() {
             ) : (
               <div className="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-[#2B3C50]/10 text-[#2B3C50] rounded-lg flex items-center justify-center">
                     <FileText className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
@@ -155,24 +178,55 @@ export function UploadScreen() {
               <Label>Título *</Label>
               <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
             </div>
+            
             <div className="space-y-2">
               <Label>Descrição</Label>
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            {/* 3. ALTERAÇÃO: Grid mudado para 3 colunas para acomodar a data */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Categoria *</Label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white"> {/* bg-white adicionado */}
                     {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="space-y-2">
+                <Label>Programa *</Label>
+                <Select value={programId} onValueChange={setProgramId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o programa" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white"> {/* bg-white adicionado */}
+                    {programas.map((prog) => (
+                      <SelectItem key={prog.id} value={String(prog.id)}>
+                        {prog.sigla} - {prog.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Novo Input de Data */}
+              <div className="space-y-2">
+                <Label>Data de Publicação *</Label>
+                <Input 
+                  type="date" 
+                  value={publicationDate} 
+                  onChange={(e) => setPublicationDate(e.target.value)} 
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
                 <Label>Tags</Label>
                 <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="Separe por vírgula" />
-              </div>
             </div>
           </CardContent>
         </Card>

@@ -72,7 +72,7 @@ export function ApprovalScreen() {
                 <Card key={item.idFluxo}>
                     <CardContent className="p-6">
                         <div className="flex gap-4">
-                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div className="w-12 h-12 bg-[#2B3C50]/10 text-[#2B3C50] rounded-lg flex items-center justify-center flex-shrink-0">
                                 <FileText className="w-6 h-6 text-blue-600" />
                             </div>
                             <div className="flex-1">

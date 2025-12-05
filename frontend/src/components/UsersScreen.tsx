@@ -114,7 +114,7 @@ export function UsersScreen() {
                     <Label>Perfil</Label>
                     <Select value={newRole} onValueChange={setNewRole}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white">
                             <SelectItem value="FUNCIONARIO">Funcionário</SelectItem>
                             <SelectItem value="GESTOR">Gestor</SelectItem>
                             <SelectItem value="ADMIN">Administrador</SelectItem>

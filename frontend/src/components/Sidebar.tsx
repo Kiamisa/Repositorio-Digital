@@ -5,7 +5,6 @@ import {
   CheckCircle, 
   Users, 
   LogOut,
-  FileText
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
@@ -41,15 +40,11 @@ export function Sidebar() {
   });
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col fixed left-0 top-0">
+    <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col fixed left-0 top-0 shadow-sm">
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <FileText className="w-6 h-6 text-white" />
-          </div>
           <div>
-            <h1 className="text-gray-900 font-bold">DocRepo</h1>
-            <p className="text-sm text-gray-500">Repositório Digital</p>
+            <img src="./src/assets/images/Brasao_UEMA_horizontal.jpg" alt="Brasão UEMA" />
           </div>
         </div>
       </div>
@@ -66,11 +61,11 @@ export function Sidebar() {
                   onClick={() => handleNavigation(item.path)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-sm ${
                     isActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-[#2B3C50] text-white'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-[#2B3C50]'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
                   <span>{item.label}</span>
                 </button>
               </li>

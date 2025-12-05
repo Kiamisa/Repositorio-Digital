@@ -8,16 +8,14 @@ import { SearchScreen } from "./components/SearchScreen";
 import { ApprovalScreen } from "./components/ApprovalScreen"; 
 import { UsersScreen } from "./components/UsersScreen"; 
 
-// Layout para páginas que exigem autenticação (Dashboard, Upload, etc)
+// Layout para páginas que exigem autenticação
 const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
 
-  // Se NÃO estiver logado, joga imediatamente para o Login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // Se estiver logado, mostra a Sidebar e o Conteúdo
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -28,11 +26,10 @@ const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Layout para a tela de Login (Para redirecionar quem JÁ está logado)
+// Layout para a tela de Login
 const PublicLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
 
-  // Se o usuário tentar acessar /login mas JÁ ESTIVER logado, manda pro Dashboard
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -45,24 +42,24 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* 1. Rota Raiz: Redireciona sempre para /login */}
+          {/* 1. Rota Raiz */}
           <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* 2. Tela de Login (Com proteção para não deixar logado acessar) */}
+          {/* 2. Tela de Login */}
           <Route path="/login" element={
             <PublicLayout>
               <LoginScreen />
             </PublicLayout>
           } />
           
-          {/* 3. Rotas Protegidas (Exigem Login) */}
+          {/* 3. Rotas Protegidas */}
           <Route path="/dashboard" element={<ProtectedLayout><DashboardScreen /></ProtectedLayout>} />
           <Route path="/upload" element={<ProtectedLayout><UploadScreen /></ProtectedLayout>} />
           <Route path="/consulta" element={<ProtectedLayout><SearchScreen /></ProtectedLayout>} />
           <Route path="/aprovacao" element={<ProtectedLayout><ApprovalScreen /></ProtectedLayout>} />
           <Route path="/usuarios" element={<ProtectedLayout><UsersScreen /></ProtectedLayout>} />
 
-          {/* 4. Rota Coringa: Qualquer URL desconhecida joga pro Login */}
+          {/* 4. Rota Coringa */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

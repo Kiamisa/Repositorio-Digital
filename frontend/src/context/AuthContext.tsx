@@ -14,6 +14,7 @@ interface AuthContextData {
   isAdminOrGestor: boolean;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -23,14 +24,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  // Estado já inicializado via useState acima
-
   const login = (newToken: string, email: string) => {
     localStorage.setItem('token', newToken);
     setToken(newToken);
 
-    // Simulação de perfil (igual fizemos no Vue, pois o backend v1 só retorna token)
-    // Num backend v2, decodificaríamos o token JWT real.
+    // Simulação de perfil
     const perfil = (email.includes('admin') || email.includes('maria')) ? 'ADMIN' : 'FUNCIONARIO';
     const newUser = { email, perfil };
 
@@ -54,5 +52,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
