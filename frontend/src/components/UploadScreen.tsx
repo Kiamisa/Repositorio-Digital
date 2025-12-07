@@ -184,13 +184,12 @@ export function UploadScreen() {
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
 
-            {/* 3. ALTERAÇÃO: Grid mudado para 3 colunas para acomodar a data */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Categoria *</Label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent className="bg-white"> {/* bg-white adicionado */}
+                  <SelectContent className="bg-white">
                     {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -199,10 +198,10 @@ export function UploadScreen() {
               <div className="space-y-2">
                 <Label>Programa *</Label>
                 <Select value={programId} onValueChange={setProgramId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full [&>span]:truncate">
                     <SelectValue placeholder="Selecione o programa" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white"> {/* bg-white adicionado */}
+                  <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
                     {programas.map((prog) => (
                       <SelectItem key={prog.id} value={String(prog.id)}>
                         {prog.sigla} - {prog.nome}

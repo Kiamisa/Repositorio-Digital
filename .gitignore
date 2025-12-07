@@ -31,3 +31,7 @@ replay_pid*
 .env.*
 
     
+# Python 
+__pycache__/
+*.pyc
+.venv/

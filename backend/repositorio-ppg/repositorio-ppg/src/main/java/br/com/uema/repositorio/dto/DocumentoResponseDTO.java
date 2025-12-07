@@ -2,8 +2,10 @@ package br.com.uema.repositorio.dto;
 
 import br.com.uema.repositorio.entity.Documento;
 import br.com.uema.repositorio.enums.TipoDocumento;
+import lombok.Builder;
 import java.time.LocalDate;
 
+@Builder
 public record DocumentoResponseDTO(
         Long id,
         String titulo,
@@ -14,7 +16,8 @@ public record DocumentoResponseDTO(
         String nomeAutor,
         String urlDownload,
         LocalDate dataPublicacao
-) {
+)
+{
     public DocumentoResponseDTO(Documento doc) {
         this(
                 doc.getId(),

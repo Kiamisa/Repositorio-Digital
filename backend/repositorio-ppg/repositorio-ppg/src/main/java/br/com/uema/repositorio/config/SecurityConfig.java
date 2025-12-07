@@ -22,7 +22,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -37,43 +36,36 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // 1. Aplica a configuração de CORS definida no Bean abaixo
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(authorize -> authorize
-                        // 1. INFRAESTRUTURA (Essencial para não dar erro de CORS/401 no frontend)
+                        // Permite OPTIONS para evitar erro de preflight no navegador
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // 2. ACESSOS PÚBLICOS
-                        .requestMatchers("/login", "/auth/login").permitAll()
+                        // Acessos Públicos (Front e Python acessam aqui)
+                        .requestMatchers("/auth/**", "/login").permitAll()
                         .requestMatchers("/usuarios/registro-publico").permitAll()
+
+                        // IMPORTANTE: Permite GET publicamente para a IA ler os documentos
                         .requestMatchers(HttpMethod.GET, "/documentos/**").permitAll()
+
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
 
-                        // 3. REGRAS DE NEGÓCIO (Baseadas no Legado)
-
-                        // Download e Leitura: Permitido para todos os usuários logados
-                        .requestMatchers(HttpMethod.GET, "/documentos/**", "/documentos/download/**")
-                        .hasAnyRole("ESTAGIARIO", "FUNCIONARIO", "GESTOR", "ADMIN")
-
-                        // Upload: Permitido para todos logados
-                        .requestMatchers(HttpMethod.POST, "/documentos")
-                        .hasAnyRole("ESTAGIARIO", "FUNCIONARIO", "GESTOR", "ADMIN")
-
-                        // Edição/Exclusão: Estagiário NÃO pode
+                        // Endpoints protegidos (Upload, Edição, Delete)
+                        .requestMatchers(HttpMethod.POST, "/documentos").hasAnyRole("ESTAGIARIO", "FUNCIONARIO", "GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/documentos/**").hasAnyRole("FUNCIONARIO", "GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/documentos/**").hasAnyRole("FUNCIONARIO", "GESTOR", "ADMIN")
 
-                        // Aprovação e Gestão de Usuários: Apenas Chefia
                         .requestMatchers("/aprovacoes/**").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers("/usuarios/**").hasAnyRole("GESTOR", "ADMIN")
 
-                        // Bloqueia qualquer outra coisa não mapeada
                         .anyRequest().authenticated()
                 )
 
-                // 4. TRATAMENTO DE ERROS EM JSON (Para o frontend entender o erro)
+                // Tratamento de Erros JSON
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpStatus.UNAUTHORIZED.value());
@@ -91,12 +83,11 @@ public class SecurityConfig {
                             new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
                                     "status", 403,
                                     "error", "Forbidden",
-                                    "message", "Seu perfil não tem permissão para realizar esta ação",
+                                    "message", "Acesso negado: Perfil sem permissão",
                                     "path", request.getRequestURI()
                             ));
                         })
                 )
-
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -105,10 +96,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
-        configuration.setExposedHeaders(List.of("Content-Disposition"));
+        configuration.setAllowedOriginPatterns(List.of("*"));
+
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

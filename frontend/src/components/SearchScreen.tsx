@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Search, Filter, FileText, Download, Calendar } from 'lucide-react';
+import { Search, Filter, FileText, Download, Calendar, X } from 'lucide-react';
 import api from '../services/api';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import axios from 'axios';
+
 
 interface Documento {
   id: number;
@@ -25,23 +27,76 @@ export function SearchScreen() {
   const [documents, setDocuments] = useState<Documento[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [programFilter, setProgramFilter] = useState('all');
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
   const [showFilters, setShowFilters] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     api.get('/documentos').then(res => setDocuments(res.data)).catch(console.error);
   }, []);
 
   const categories = Array.from(new Set(documents.map(d => d.tipo)));
-
+  const programs = Array.from(new Set(documents.map(d => d.nomePrograma).filter(Boolean)));
+  
   const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = 
-      doc.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (doc.descricao && doc.descricao.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+    // 1. Filtro de Categoria
     const matchesCategory = categoryFilter === 'all' || doc.tipo === categoryFilter;
     
-    return matchesSearch && matchesCategory;
+    // 2. Filtro de Programa
+    const matchesProgram = programFilter === 'all' || doc.nomePrograma === programFilter;
+
+    // 3. Filtro de Data (Comparação simples de string ISO YYYY-MM-DD)
+    const matchesStartDate = !startDateFilter || doc.dataPublicacao >= startDateFilter;
+    const matchesEndDate = !endDateFilter || doc.dataPublicacao <= endDateFilter;
+
+    return matchesCategory && matchesProgram && matchesStartDate && matchesEndDate;
   });
+
+  const clearFilters = async () => {
+    // 1. Reseta os estados visuais
+    setSearchTerm('');
+    setCategoryFilter('all');
+    setProgramFilter('all');
+    setStartDateFilter('');
+    setEndDateFilter('');
+    
+    // 2. Reseta a lista de documentos para o original (Java)
+    setIsLoading(true);
+    try {
+      const res = await api.get('/documentos');
+      setDocuments(res.data);
+    } catch (error) {
+      console.error("Erro ao resetar filtros:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const handleSmartSearch = async () => {
+    setIsLoading(true);
+    setDocuments([]); // Limpa visualmente enquanto carrega
+    
+    try {
+      if (!searchTerm.trim()) {
+        // Se busca vazia, recarrega tudo do Java (Porta 8080 via api.ts)
+        const res = await api.get('/documentos');
+        setDocuments(res.data);
+      } else {
+        // Se tem texto, chama o Python (Porta 8000)
+        // Ajuste o IP se estiver no Android Emulator (10.0.2.2) ou Web (localhost)
+        const res = await axios.post('http://localhost:8000/smart-search', { 
+          query: searchTerm 
+        });
+        setDocuments(res.data);
+      }
+    } catch (error) {
+      console.error("Erro na busca:", error);
+      // Opcional: Mostrar erro na tela
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="p-8 ml-64">
@@ -55,24 +110,37 @@ export function SearchScreen() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input 
             className="pl-10" 
-            placeholder="Pesquisar..." 
+            placeholder="Pesquisa Inteligente por IA..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSmartSearch()}
+            disabled={isLoading}
           />
         </div>
+        
+        <Button onClick={handleSmartSearch} disabled={isLoading}>
+           {isLoading ? 'Buscando, Por favor aguarde...' : 'Buscar'}
+        </Button>
+
         <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
           <Filter className="w-4 h-4 mr-2" /> Filtros
         </Button>
+
+        {(searchTerm || categoryFilter !== 'all' || programFilter !== 'all' || startDateFilter || endDateFilter) && (
+          <Button variant="ghost" onClick={clearFilters} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+            <X className="w-4 h-4 mr-2" /> Limpar
+          </Button>
+        )}
       </div>
 
       {showFilters && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
-            <CardDescription>Refine sua busca</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              
               <div className="space-y-2">
                 <Label>Categoria</Label>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -83,6 +151,39 @@ export function SearchScreen() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Filtro de Programa */}
+              <div className="space-y-2">
+                <Label>Programa</Label>
+                <Select value={programFilter} onValueChange={setProgramFilter}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent className="bg-white max-h-[200px]">
+                    <SelectItem value="all">Todos</SelectItem>
+                    {programs.map(prog => <SelectItem key={prog} value={prog}>{prog}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Data Início */}
+              <div className="space-y-2">
+                <Label>Data Início</Label>
+                <Input 
+                  type="date" 
+                  value={startDateFilter} 
+                  onChange={(e) => setStartDateFilter(e.target.value)} 
+                />
+              </div>
+
+              {/* Data Fim */}
+              <div className="space-y-2">
+                <Label>Data Fim</Label>
+                <Input 
+                  type="date" 
+                  value={endDateFilter} 
+                  onChange={(e) => setEndDateFilter(e.target.value)} 
+                />
+              </div>
+
             </div>
           </CardContent>
         </Card>

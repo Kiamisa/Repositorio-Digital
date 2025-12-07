@@ -56,7 +56,6 @@ export function ApprovalScreen() {
             </CardHeader>
             <CardContent><div className="text-2xl font-bold">{pendencias.length}</div></CardContent>
         </Card>
-        {/* Outros cards estáticos para visual */}
       </div>
 
       <Tabs defaultValue="pending">
@@ -89,7 +88,7 @@ export function ApprovalScreen() {
                                     <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleProcess(item.idFluxo, true)}>
                                         <CheckCircle className="w-4 h-4 mr-2"/> Aprovar
                                     </Button>
-                                    <Button size="sm" variant="destructive" onClick={() => handleProcess(item.idFluxo, false)}>
+                                    <Button size="sm" variant="destructive" className="bg-red-600 hover:bg-red-700" onClick={() => handleProcess(item.idFluxo, false)}>
                                         <XCircle className="w-4 h-4 mr-2"/> Rejeitar
                                     </Button>
                                 </div>

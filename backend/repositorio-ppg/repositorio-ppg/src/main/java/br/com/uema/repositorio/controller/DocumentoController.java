@@ -7,6 +7,7 @@ import br.com.uema.repositorio.repository.DocumentoRepository;
 import br.com.uema.repositorio.service.DocumentoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,12 +36,15 @@ public class DocumentoController {
     @GetMapping
     public ResponseEntity<List<DocumentoResponseDTO>> listarDocumentosPublicos() {
         var docs = documentoRepository.findAllAprovados();
-        var dtos = docs.stream().map(DocumentoResponseDTO::new).toList();
+        var dtos = docs.stream()
+                .map(DocumentoResponseDTO::new)
+                .toList();
+
         return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<org.springframework.core.io.Resource> baixarDocumento(@PathVariable Long id) {
+    public ResponseEntity<Resource> baixarDocumento(@PathVariable Long id) {
         var recurso = documentoService.download(id);
         return ResponseEntity.ok()
                 .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,

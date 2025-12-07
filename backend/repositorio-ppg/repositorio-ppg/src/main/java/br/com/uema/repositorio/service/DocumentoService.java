@@ -41,8 +41,6 @@ public class DocumentoService {
 
     private final DocumentoRepository documentoRepository;
     private final ProgramaRepository programaRepository;
-    @Autowired
-    private LlmService llmService;
 
     public DocumentoService(DocumentoRepository documentoRepository, ProgramaRepository programaRepository) {
         this.documentoRepository = documentoRepository;
@@ -59,15 +57,6 @@ public class DocumentoService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Programa não encontrado"));
 
         String caminhoArquivo = salvarArquivoNoDisco(dados.getArquivo());
-        String resumoIa = "Processando...";
-        try{
-            String textoMarkdown = new DoclingService().extrairTextoInteligente(dados.getArquivo());
-
-            resumoIa = llmService.gerarResumo(textoMarkdown, programa.getNome());
-        } catch (Exception e){
-            resumoIa = "Erro ao gerar resumo com IA.";
-            e.printStackTrace();
-        }
         var novoDocumento = Documento.builder()
                 .titulo(dados.getTitulo())
                 .descricao(dados.getDescricao())
