@@ -9,15 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Badge } from './ui/badge';
 
 interface Documento {
-    id: number;
-    titulo: string;
-    descricao: string;
-    tipo: string;
-    dataPublicacao: string;
-    nomeAutor: string;
-    nomePrograma: string;
-    urlDownload: string;
-    status: string; // Vindo do backend ou assumido 'APROVADO'
+  id: number;
+  titulo: string;
+  descricao: string;
+  tipo: string;
+  dataPublicacao: string;
+  nomeAutor: string;
+  nomePrograma: string;
+  urlDownload: string;
+  status: string;
+  resumoIa?: string;
 }
 
 export function SearchScreen() {
@@ -27,7 +28,6 @@ export function SearchScreen() {
   const [showFilters, setShowFilters] = useState(true);
 
   useEffect(() => {
-    // Busca documentos públicos
     api.get('/documentos').then(res => setDocuments(res.data)).catch(console.error);
   }, []);
 
@@ -88,6 +88,8 @@ export function SearchScreen() {
         </Card>
       )}
 
+      {/* Removed stray doc.resumoIa block here to prevent ReferenceError */}
+
       <div className="space-y-4">
         {filteredDocuments.map((doc) => (
           <Card key={doc.id} className="hover:shadow-md transition-shadow">
@@ -102,6 +104,36 @@ export function SearchScreen() {
                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Aprovado</Badge>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{doc.descricao}</p>
+                  
+                  {doc.resumoIa && (
+                      <div className="mb-4 p-4 bg-purple-50 border border-purple-100 rounded-lg shadow-sm">
+                          <div className="flex items-center gap-2 mb-2 text-purple-700">
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="16" 
+                                height="16" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round"
+                              >
+                                <path d="M12 8V4H8"/>
+                                <rect width="16" height="12" x="4" y="8" rx="2"/>
+                                <path d="M2 14h2"/>
+                                <path d="M20 14h2"/>
+                                <path d="M15 13v2"/>
+                                <path d="M9 13v2"/>
+                              </svg>
+                              <span className="text-xs font-bold uppercase tracking-wide">Resumo Inteligente</span>
+                          </div>
+                          <p className="text-sm text-gray-800 leading-relaxed">
+                              {doc.resumoIa}
+                          </p>
+                      </div>
+                  )}
+
                   <div className="flex gap-3 text-xs text-gray-500 items-center">
                     <span className="flex gap-1 items-center"><Calendar className="w-3 h-3"/> {doc.dataPublicacao}</span>
                     <span>•</span>
