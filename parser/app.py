@@ -16,17 +16,15 @@ app = FastAPI(title="Smart Doc Service - Ollama Powered")
 logging.basicConfig(level=logging.INFO)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite qualquer origem (React, Android, etc)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],  # Permite GET, POST, OPTIONS, etc.
     allow_headers=["*"],  # Permite enviar JSON e outros headers
 )
-# URL do Backend Spring Boot (Sua fonte de dados)
-BACKEND_URL = "http://localhost:8080/documentos"
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8080/documentos")
 
-# Configuração do OLLAMA (Local)
-OLLAMA_BASE_URL = "http://localhost:11434/v1"
-OLLAMA_API_KEY = "ollama"
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY", "ollama")
 MODEL_NAME = "qwen3:8b"
 
 # Cliente OpenAI apontando para o Ollama

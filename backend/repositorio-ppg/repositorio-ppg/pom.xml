@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>br.edu.uema</groupId>
 	<artifactId>repositorio-ppg</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.0</version>
 	<name>repositorio-ppg</name>
 	<description>Sistema de Repositório Institucional PPG/UEMA</description>
 	<url/>
@@ -35,6 +35,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-ollama-spring-boot-starter</artifactId>
