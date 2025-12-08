@@ -1,18 +1,24 @@
 services:
   # 1. Banco de Dados
   db:
-    image: postgres:18
+    image: postgres:16-alpine
     container_name: repositorio-db
     environment:
-      POSTGRES_DB: repositorio
+      POSTGRES_DB: ppg_uema
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: p4ssw0rd
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ppg_uema"] 
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   # 2. LLM (Ollama)
   ollama:
@@ -30,13 +36,14 @@ services:
     build: ./backend/repositorio-ppg/repositorio-ppg
     container_name: spring-backend
     environment:
-      DB_URL: jdbc:postgresql://db:5432/repositorio
+      DB_URL: jdbc:postgresql://db:5432/ppg_uema
       DB_USER: postgres
       DB_PASSWORD: p4ssw0rd
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -60,7 +67,7 @@ services:
     build: ./frontend
     container_name: react-frontend
     ports:
-      - "5173:80" # Mapeia porta 80 do Nginx para 5173 do seu PC
+      - "5173:80"
     depends_on:
       - backend
       - ai-service
