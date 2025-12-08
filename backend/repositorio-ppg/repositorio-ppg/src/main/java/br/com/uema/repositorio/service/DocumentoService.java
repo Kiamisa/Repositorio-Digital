@@ -36,15 +36,14 @@ public class DocumentoService {
     @Value("${file.upload-dir:./uploads}")
     private String uploadDir;
 
-    @Autowired
-    private FluxoAprovacaoRepository fluxoAprovacaoRepository;
-
+    private final FluxoAprovacaoRepository fluxoAprovacaoRepository;
     private final DocumentoRepository documentoRepository;
     private final ProgramaRepository programaRepository;
 
-    public DocumentoService(DocumentoRepository documentoRepository, ProgramaRepository programaRepository) {
+    public DocumentoService(DocumentoRepository documentoRepository, ProgramaRepository programaRepository, FluxoAprovacaoRepository fluxoAprovacaoRepository) {
         this.documentoRepository = documentoRepository;
         this.programaRepository = programaRepository;
+        this.fluxoAprovacaoRepository = fluxoAprovacaoRepository;
     }
 
     @Transactional
