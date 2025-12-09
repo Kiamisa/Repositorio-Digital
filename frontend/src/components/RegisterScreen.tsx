@@ -15,13 +15,12 @@ export function RegisterScreen() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Chama a rota pública definida no UsuarioController
       await api.post('/usuarios/registro-publico', {
         ...formData,
-        perfil: 'FUNCIONARIO' // Padrão para solicitação
+        perfil: 'FUNCIONARIO'
       });
       alert('Solicitação enviada! Aguarde a aprovação do administrador.');
-      navigate('/'); // Volta para o login
+      navigate('/');
     } catch (error) {
       console.error(error);
       alert('Erro ao solicitar acesso.');

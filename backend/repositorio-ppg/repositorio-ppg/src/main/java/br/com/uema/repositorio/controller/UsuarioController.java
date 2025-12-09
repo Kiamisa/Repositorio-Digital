@@ -4,6 +4,7 @@ import br.com.uema.repositorio.dto.UsuarioRequestDTO;
 import br.com.uema.repositorio.dto.UsuarioResponseDTO;
 import br.com.uema.repositorio.service.UsuarioService;
 import jakarta.validation.Valid;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +39,7 @@ public class UsuarioController {
     // Rota Restrita: Admin/Gestor aprova cadastro pendente
     @PatchMapping("/{id}/ativar")
     @PreAuthorize("hasAnyRole('ADMIN', 'GESTOR')")
-    public ResponseEntity<Void> ativarUsuario(@PathVariable Long id) {
+    public ResponseEntity<Void> ativarUsuario(@PathVariable @NonNull Long id) {
         usuarioService.ativarUsuario(id);
         return ResponseEntity.noContent().build();
     }

@@ -5,6 +5,7 @@ import br.com.uema.repositorio.entity.Usuario;
 import br.com.uema.repositorio.enums.EstadoAprovacao;
 import br.com.uema.repositorio.exception.RecursoNaoEncontradoException;
 import br.com.uema.repositorio.repository.FluxoAprovacaoRepository;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +36,7 @@ public class AprovacaoController {
     @PatchMapping("/{idFluxo}")
     @PreAuthorize("hasAnyRole('ADMIN', 'GESTOR')")
     public ResponseEntity<Void> analisarDocumento(
-            @PathVariable Long idFluxo,
+            @PathVariable @NonNull Long idFluxo,
             @RequestParam boolean aprovado,
             @RequestParam(required = false) String comentario,
             @AuthenticationPrincipal Usuario gestor

@@ -12,7 +12,6 @@ import br.com.uema.repositorio.exception.RegraNegocioException;
 import br.com.uema.repositorio.repository.DocumentoRepository;
 import br.com.uema.repositorio.repository.FluxoAprovacaoRepository;
 import br.com.uema.repositorio.repository.ProgramaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;

@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LoginScreen } from "./components/LoginScreen";
@@ -27,7 +28,8 @@ const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Layout para a tela de Login
+// Layout para páginas públicas (Login, Registro)
+// Se já estiver logado, manda para o Dashboard
 const PublicLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
 
@@ -43,25 +45,29 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* 1. Rota Raiz */}
+          {/* 1. Rota Raiz - Redireciona para login */}
           <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* 2. Tela de Login */}
+          {/* 2. Rotas Públicas (Login e Registro) */}
           <Route path="/login" element={
             <PublicLayout>
               <LoginScreen />
             </PublicLayout>
           } />
           
-          {/* 3. Rotas Protegidas */}
+          <Route path="/register" element={ 
+            <PublicLayout>
+              <RegisterScreen />
+            </PublicLayout>
+          } />
+          
+          {/* 3. Rotas Protegidas (Dashboard, etc) */}
           <Route path="/dashboard" element={<ProtectedLayout><DashboardScreen /></ProtectedLayout>} />
           <Route path="/upload" element={<ProtectedLayout><UploadScreen /></ProtectedLayout>} />
           <Route path="/consulta" element={<ProtectedLayout><SearchScreen /></ProtectedLayout>} />
           <Route path="/aprovacao" element={<ProtectedLayout><ApprovalScreen /></ProtectedLayout>} />
           <Route path="/usuarios" element={<ProtectedLayout><UsersScreen /></ProtectedLayout>} />
-          <Route path="/registro" element={<PublicLayout><RegisterScreen /></PublicLayout>} />
 
-          {/* 4. Rota Coringa */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Eye, EyeOff, FileText } from "lucide-react";
-import { useAuth } from "../context/useAuth"; // Importa nosso hook
-import { useNavigate } from "react-router-dom";   // Navegação do React
-import api from "../services/api"; // Nossa API
+import { useAuth } from "../context/useAuth"; 
+import { useNavigate, Link } from "react-router-dom";
+import api from "../services/api"; 
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -14,7 +14,7 @@ export function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+  
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -24,13 +24,9 @@ export function LoginScreen() {
     setLoading(true);
 
     try {
-      // Chamada real ao Backend Spring Boot
       const response = await api.post("/login", { email, senha: password });
-      
-      // Salva no contexto e redireciona
       login(response.data.token, email);
       navigate("/dashboard");
-      
     } catch (err) {
       console.error(err);
       setError("Credenciais inválidas ou erro no servidor.");
@@ -81,6 +77,16 @@ export function LoginScreen() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Entrando..." : "Entrar"}
               </Button>
+
+              <div className="text-center mt-4 pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-600">
+                  Não tem acesso?{' '}
+                  <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 hover:underline">
+                    Solicitar conta
+                  </Link>
+                </p>
+              </div>
+
             </form>
           </CardContent>
         </Card>
