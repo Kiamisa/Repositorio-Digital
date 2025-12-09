@@ -7,6 +7,7 @@ import { UploadScreen } from "./components/UploadScreen";
 import { SearchScreen } from "./components/SearchScreen"; 
 import { ApprovalScreen } from "./components/ApprovalScreen"; 
 import { UsersScreen } from "./components/UsersScreen"; 
+import { RegisterScreen } from "./components/RegisterScreen";
 
 // Layout para páginas que exigem autenticação
 const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="/consulta" element={<ProtectedLayout><SearchScreen /></ProtectedLayout>} />
           <Route path="/aprovacao" element={<ProtectedLayout><ApprovalScreen /></ProtectedLayout>} />
           <Route path="/usuarios" element={<ProtectedLayout><UsersScreen /></ProtectedLayout>} />
+          <Route path="/registro" element={<PublicLayout><RegisterScreen /></PublicLayout>} />
 
           {/* 4. Rota Coringa */}
           <Route path="*" element={<Navigate to="/login" replace />} />

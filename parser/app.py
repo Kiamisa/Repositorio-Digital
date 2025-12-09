@@ -76,7 +76,6 @@ def smart_search(request: SearchRequest):
     """
     try:
         # 1. Buscar documentos brutos do Backend Java
-        # Em dev, se o backend não estiver rodando, use um mock para testar
         try:
             response = requests.get(BACKEND_URL, timeout=5)
             if response.status_code == 200:
@@ -101,7 +100,7 @@ def smart_search(request: SearchRequest):
         A data de hoje é: {hoje}.
 
         IMPORTANTE - USE ESTE MAPA DE SIGLAS PARA ENTENDER O CONTEXTO:
-        Se o usuário buscar por uma sigla (valor), busque pelo nome completo do programa (chave), e vice-versa.
+        Se o usuário buscar por uma sigla (valor), busque pelo nome completo do programa (chave).
         {mapa_str}
 
         SUA TAREFA:

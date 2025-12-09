@@ -56,4 +56,29 @@ public class UsuarioService {
                 .map(UsuarioResponseDTO::new)
                 .toList();
     }
+
+    @Transactional
+    public UsuarioResponseDTO atualizarUsuario(Long id, UsuarioRequestDTO dados) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
+        
+        usuario.setNome(dados.nome());
+        usuario.setEmail(dados.email());
+        usuario.setPerfil(dados.perfil());
+        
+        // // Só atualiza senha se for enviada uma nova (lógica opcional)
+        // if (dados.senha() != null && !dados.senha().isBlank()) {
+        //     usuario.setSenha(passwordEncoder.encode(dados.senha()));
+        // }
+
+        return new UsuarioResponseDTO(usuarioRepository.save(usuario));
+    }
+
+    @Transactional
+    public void excluirUsuario(Long id) {
+        if (!usuarioRepository.existsById(id)) {
+            throw new RecursoNaoEncontradoException("Usuário não encontrado");
+        }
+        usuarioRepository.deleteById(id);
+    }
 }

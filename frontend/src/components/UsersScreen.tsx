@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, User as UserIcon } from 'lucide-react';
+import { UserPlus, User as UserIcon, Pencil, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -52,6 +52,18 @@ export function UsersScreen() {
       }
   };
 
+  const handleDeleteUser = async (id: number) => {
+    if (confirm('Tem certeza que deseja excluir este usuário?')) {
+      try {
+        await api.delete(`/usuarios/${id}`);
+        fetchUsers(); // Recarrega a lista
+      } catch (error) {
+        console.error("Erro ao excluir", error);
+        alert("Erro ao excluir usuário");
+      }
+    }
+  };
+
   return (
     <div className="p-8 ml-64">
       <div className="flex justify-between items-center mb-8">
@@ -63,6 +75,7 @@ export function UsersScreen() {
             <UserPlus className="w-4 h-4 mr-2" /> Adicionar
         </Button>
       </div>
+      <TableHead className="text-right">Ações</TableHead>
 
       <Card>
         <CardHeader><CardTitle>Lista de Usuários</CardTitle></CardHeader>
@@ -88,6 +101,19 @@ export function UsersScreen() {
                             </Badge>
                         </div>
                     </div>
+                    <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                            {/* Botão Editar (Apenas abre logica futura ou modal de edição) */}
+                            <Button variant="ghost" size="icon" onClick={() => alert(`Editar usuário ${user.id} (Implementar modal)`)}>
+                            <Pencil className="w-4 h-4 text-blue-600" />
+                            </Button>
+                            
+                            {/* Botão Excluir */}
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)}>
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                        </div>
+                    </TableCell>
                 ))}
             </div>
         </CardContent>

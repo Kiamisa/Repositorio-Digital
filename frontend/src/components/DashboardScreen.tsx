@@ -7,6 +7,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { EditDocumentModal } from "./EditDocumentModal";
 
+// 1. Definindo a interface Documento
 interface Documento {
   id: number;
   titulo: string;
@@ -19,6 +20,7 @@ interface Documento {
   status?: string;
 }
 
+// Componente DashboardScreen
 export function DashboardScreen() {
   const { user } = useAuth();
   const [documents, setDocuments] = useState<Documento[]>([]);
