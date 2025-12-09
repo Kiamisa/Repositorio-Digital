@@ -36,7 +36,7 @@ services:
     build: ./backend/repositorio-ppg/repositorio-ppg
     container_name: spring-backend
     environment:
-      DB_URL: jdbc:postgresql://db:5432/ppg_uema
+      DB_URL: jdbc:postgresql://db:5432/ppg_uema?stringtype=unspecified
       DB_USER: postgres
       DB_PASSWORD: p4ssw0rd
     ports:
