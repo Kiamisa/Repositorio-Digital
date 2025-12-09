@@ -17,4 +17,26 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleRegraNegocio(RegraNegocioException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
     }
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleGenericException(Exception e) {
+        log.error("Erro inesperado", e);
+        return ProblemDetail.forStatusAndDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR, 
+            "Erro interno do servidor"
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidation(MethodArgumentNotValidException e) {
+        var errors = e.getBindingResult().getFieldErrors().stream()
+            .collect(Collectors.toMap(
+                FieldError::getField,
+                FieldError::getDefaultMessage
+            ));
+        return ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST, 
+            "Erro de validação: " + errors
+        );
+    }
 }
