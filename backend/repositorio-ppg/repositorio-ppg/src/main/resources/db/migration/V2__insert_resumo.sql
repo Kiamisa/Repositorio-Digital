@@ -1,0 +1,9 @@
+CREATE TABLE resumos (
+    id BIGSERIAL PRIMARY KEY,
+    conteudo TEXT NOT NULL,
+    documento_id BIGINT NOT NULL REFERENCES documentos(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE documentos DROP COLUMN resumo_ia;

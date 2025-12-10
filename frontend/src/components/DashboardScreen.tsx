@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { FileText, Download, Trash2, Edit } from "lucide-react";
+import { FileText, Download, Trash2, Edit, Brain} from "lucide-react";
 import api from "../services/api";
 import { useAuth } from "../context/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { EditDocumentModal } from "./EditDocumentModal";
+import { InsightsModal } from "./InsightsModal"
 
 // 1. Definindo a interface Documento
 interface Documento {
@@ -29,6 +30,11 @@ export function DashboardScreen() {
   // 2. Estados para controlar o Modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<Documento | null>(null);
+
+  // Estados para Insights
+  const [isInsightsOpen, setIsInsightsOpen] = useState(false);
+  const [insightsText, setInsightsText] = useState<string | null>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
 
   // 3. Transformamos a busca em função para poder recarregar após editar
   const loadDocuments = () => {
@@ -65,6 +71,23 @@ export function DashboardScreen() {
       } catch (error) {
         console.error("Erro ao deletar", error);
       }
+    }
+  };
+
+  const handleOpenInsights = async (docId: number) => {
+    setIsInsightsOpen(true);
+    setLoadingInsights(true);
+    setInsightsText(null); // Limpa anterior
+
+    try {
+        // Chama o endpoint do Java que orquestra tudo
+        const response = await api.post(`/documentos/${docId}/insights`);
+        setInsightsText(response.data);
+    } catch (error) {
+        console.error("Erro ao gerar insights", error);
+        setInsightsText("Erro ao gerar insights. Verifique se o serviço de IA está ativo.");
+    } finally {
+        setLoadingInsights(false);
     }
   };
 
@@ -117,7 +140,10 @@ export function DashboardScreen() {
                                 <Download className="w-4 h-4 mr-2" /> Baixar
                             </Button>
                         </a>
-
+                            <Button variant="ghost" size="sm" className="h-8 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+                            onClick={() => handleOpenInsights(doc.id)}>
+                            <Brain className="w-4 h-4 mr-2" /> Insights
+                        </Button>
                         <Button 
                             variant="ghost" 
                             size="sm" 
@@ -149,6 +175,12 @@ export function DashboardScreen() {
         onClose={() => setIsEditModalOpen(false)}
         onSuccess={loadDocuments}
         documento={editingDoc}
+      />
+      <InsightsModal 
+        isOpen={isInsightsOpen}
+        onClose={() => setIsInsightsOpen(false)}
+        resumo={insightsText}
+        isLoading={loadingInsights}
       />
     </div>
   );

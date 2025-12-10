@@ -181,6 +181,73 @@ async def ingest_file(file: UploadFile = File(...)):
             os.remove(temp_filename)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/summarize-file")
+async def summarize_file(file: UploadFile = File(...)):
+    temp_filename = f"temp_sum_{file.filename}"
+    file_path = Path(temp_filename).resolve()
+
+    try:
+        # 1. Salva arquivo temporário
+        with open(file_path, "wb") as buffer:
+            buffer.write(await file.read())
+        
+        # 2. Docling: Converte PDF para Texto Markdown
+        logging.info(f"Convertendo arquivo {file.filename} com Docling...")
+        
+        # Instancia e converte
+        converter = DocumentConverter()
+        result = converter.convert(file_path) # Passando Path direto
+        
+        texto_completo = result.document.export_to_markdown()
+        
+        # Limita tamanho para não estourar contexto do LLM
+        texto_cortado = texto_completo[:12000] 
+
+        # 3. Prompt para o Ollama
+        system_prompt = """
+        Você é um assistente acadêmico especialista.
+        Analise o texto fornecido e gere um resumo estruturado em Markdown.
+        O formato deve ser estritamente:
+        
+        ## Resumo Executivo
+        (Um parágrafo conciso sobre o que trata o documento)
+        
+        ## Principais Pontos
+        - (Ponto 1)
+        - (Ponto 2)
+        - (Ponto 3)
+        
+        ## Conclusão/Insights
+        (Uma breve conclusão ou insight relevante)
+        """
+
+        logging.info("Enviando para o Ollama...")
+        completion = client.chat.completions.create(
+            model=MODEL_NAME, 
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Analise este documento:\n\n{texto_cortado}"}
+            ],
+            temperature=0.3,
+        )
+        
+        resumo = completion.choices[0].message.content
+
+        return {"resumo": resumo}
+
+    except Exception as e:
+        logging.error(f"Erro ao processar: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+        
+    finally:
+        # Bloco FINALLY garante limpeza mesmo com erro
+        # Ignora erros de permissão no Windows (arquivo preso)
+        try:
+            if os.path.exists(temp_filename):
+                os.remove(temp_filename)
+        except Exception as cleanup_error:
+            logging.warning(f"Não foi possível remover arquivo temporário: {cleanup_error}")
+
 if __name__ == "__main__":
     import uvicorn
     # Roda na porta 8000 para não conflitar com o Spring (8080)

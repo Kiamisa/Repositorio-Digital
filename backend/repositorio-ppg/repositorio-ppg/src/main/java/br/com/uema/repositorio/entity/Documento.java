@@ -41,8 +41,8 @@ public class Documento {
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    @Column(name = "resumo_ia", columnDefinition = "TEXT")
-    private String resumoIa;
+    @OneToOne(mappedBy = "documento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Resumo resumo;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

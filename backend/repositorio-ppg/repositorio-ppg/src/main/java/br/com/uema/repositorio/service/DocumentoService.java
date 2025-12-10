@@ -13,12 +13,19 @@ import br.com.uema.repositorio.repository.DocumentoRepository;
 import br.com.uema.repositorio.repository.FluxoAprovacaoRepository;
 import br.com.uema.repositorio.repository.ProgramaRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
+import br.com.uema.repositorio.entity.Resumo;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -31,6 +38,8 @@ import java.util.UUID;
 
 @Service
 public class DocumentoService {
+    @Value("${app.python.url}")
+    private String pythonApiUrl;
 
     @Value("${file.upload-dir:./uploads}")
     private String uploadDir;
@@ -162,5 +171,54 @@ public class DocumentoService {
 
         documentoRepository.save(documento);
         return new DocumentoResponseDTO(documento);
+    }
+
+    @Transactional
+    public String gerarOuObterResumo(Long id) {
+        Documento doc = documentoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Documento não encontrado"));
+
+        // 1. Verifica se já existe resumo na nova tabela
+        if (doc.getResumo() != null) {
+            return doc.getResumo().getConteudo();
+        }
+
+        // 2. Se não existe, chama o Python para gerar
+        try {
+            Path arquivoPath = Paths.get(uploadDir).resolve(doc.getCaminhoArquivo()).normalize();
+
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            // Prepara o arquivo para envio
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", new FileSystemResource(arquivoPath.toFile()));
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            record ResumoResponse(String resumo) {}
+
+            var response = restTemplate.postForObject(pythonApiUrl, requestEntity, ResumoResponse.class);
+
+            if (response != null && response.resumo() != null) {
+                // 3. Salva na NOVA entidade Resumo
+                Resumo novoResumo = Resumo.builder()
+                        .conteudo(response.resumo())
+                        .documento(doc)
+                        .build();
+
+                doc.setResumo(novoResumo);
+                documentoRepository.save(doc); // Salva o documento que agora tem o resumo filho
+
+                return response.resumo();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Erro ao processar o documento com IA. Verifique se o serviço está ativo.";
+        }
+
+        return "Não foi possível gerar o resumo.";
     }
 }

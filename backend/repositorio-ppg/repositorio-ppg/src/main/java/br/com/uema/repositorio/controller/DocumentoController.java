@@ -67,4 +67,9 @@ public class DocumentoController {
         var documentoAtualizado = documentoService.atualizar(id, dados, usuarioLogado);
         return ResponseEntity.ok(documentoAtualizado);
     }
+
+    @PostMapping("/{id}/insights")
+    public ResponseEntity<String> obterInsights(@PathVariable Long id) {
+        return ResponseEntity.ok(documentoService.gerarOuObterResumo(id));
+    }
 }
