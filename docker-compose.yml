@@ -39,6 +39,7 @@ services:
       DB_URL: jdbc:postgresql://db:5432/ppg_uema?stringtype=unspecified
       DB_USER: postgres
       DB_PASSWORD: p4ssw0rd
+      APP_PYTHON_URL: http://ai-service:8000/summarize-file
     ports:
       - "8080:8080"
     depends_on:
