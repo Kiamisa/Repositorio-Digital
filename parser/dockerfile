@@ -10,10 +10,24 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
 RUN pip install --upgrade pip
-RUN pip wheel --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu -w /wheels
-RUN pip wheel --no-cache-dir -r requirements.txt -w /wheels --find-links /wheels
+
+COPY requirements.txt .
+
+# Build PyTorch wheels
+RUN pip wheel \
+    --no-cache-dir \
+    torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/cpu \
+    -w /wheels
+
+# Build all other dependency wheels
+RUN pip wheel \
+    --no-cache-dir \
+    --find-links=/wheels \
+    -r requirements.txt \
+    -w /wheels
+
 
 # ---------- runtime ----------
 FROM python:3.11-slim
@@ -25,12 +39,18 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+RUN pip install --upgrade pip
+
+COPY requirements.txt .
 COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir /wheels/*
+
+RUN pip install \
+    --no-cache-dir \
+    --find-links=/wheels \
+    -r requirements.txt
 
 COPY app.py .
 RUN mkdir -p uploads
 
 EXPOSE 8000
-
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
